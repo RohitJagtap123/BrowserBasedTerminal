@@ -1,32 +1,68 @@
-const containerCounts = new Map(); // instanceId => count
-const instanceDetails = new Map(); // instanceId => publicIp
+import { Ec2Instance } from './models/Ec2Instance.js';
 
-export function registerInstance(instanceId, publicIp) {
-  containerCounts.set(instanceId, 0);
-  instanceDetails.set(instanceId, publicIp);
+/**
+ * Register an instance if it's not already in the DB.
+ */
+export async function registerInstance(instanceId, publicIp) {
+  await Ec2Instance.updateOne(
+    { instanceId },
+    { $setOnInsert: { containerCount: 0, publicIp } },
+    { upsert: true }
+  );
 }
 
-export function getAvailableInstance() {
-  for (const [instanceId, count] of containerCounts.entries()) {
-    if (count < 2) {
-      return { instanceId, publicIp: instanceDetails.get(instanceId) };
-    }
+/**
+ * Returns the first instance with fewer than 2 containers.
+ */
+export async function getAvailableInstance() {
+  const instance = await Ec2Instance.findOne({ containerCount: { $lt: 2 } });
+  if (instance) {
+    return { instanceId: instance.instanceId, publicIp: instance.publicIp };
   }
   return null;
 }
 
-export function incrementContainer(instanceId) {
-  containerCounts.set(instanceId, (containerCounts.get(instanceId) || 0) + 1);
+/**
+ * Increments container count for an instance.
+ */
+export async function incrementContainer(instanceId) {
+  await Ec2Instance.updateOne(
+    { instanceId },
+    { $inc: { containerCount: 1 } }
+  );
 }
 
-export function decrementContainer(instanceId) {
-  const current = containerCounts.get(instanceId);
-  if (current >= 1) {
-    containerCounts.set(instanceId, current - 1);
+/**
+ * Decrements container count; deletes if count hits zero.
+ * Returns `true` if the instance should be terminated.
+ */
+export async function decrementContainer(instanceId) {
+  const instance = await Ec2Instance.findOneAndUpdate(
+    { instanceId },
+    { $inc: { containerCount: -1 } },
+    { new: true }
+  );
+
+  // ✅ Handle case when instance is not found in DB
+  if (!instance) {
+    console.warn(`Instance not found in DB: ${instanceId}`);
+    return false; // Do not terminate EC2 if DB entry is missing
+  }
+
+  // ✅ Defensive: prevent containerCount going below 0
+  if (instance.containerCount < 0) {
+    await Ec2Instance.updateOne(
+      { instanceId },
+      { $set: { containerCount: 0 } }
+    );
     return false;
-  } else {
-    containerCounts.delete(instanceId);
-    instanceDetails.delete(instanceId);
+  }
+
+  if (instance.containerCount === 0) {
+    console.log(`All containers exited on ${instanceId}, terminating.`);
+    await Ec2Instance.deleteOne({ instanceId });
     return true; // signal to terminate
   }
+
+  return false; // don't terminate
 }

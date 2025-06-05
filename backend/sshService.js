@@ -50,6 +50,14 @@ export async function startSSHSession(socket, language, imageMap, host, privateK
     privateKey,
   };
 
+ let sessionEnded = false;
+
+function endSessionOnce() {
+  if (!sessionEnded) {
+    sessionEnded = true;
+    onEnd(); // decrement container
+  }
+}
   conn
     .on("ready", () => {
       console.log("SSH ready");
@@ -78,7 +86,7 @@ export async function startSSHSession(socket, language, imageMap, host, privateK
         stream.on("close", () => {
           console.log("Stream closed");
           conn.end();
-          onEnd(); // trigger container decrement
+          endSessionOnce(); // trigger container decrement
         });
 
         socket.on("data", (data) => {
@@ -88,7 +96,7 @@ export async function startSSHSession(socket, language, imageMap, host, privateK
         socket.on("disconnect", () => {
           console.log("Client disconnected");
           conn.end();
-          onEnd(); // also trigger on socket disconnect
+          endSessionOnce(); // also trigger on socket disconnect
         });
       });
     })

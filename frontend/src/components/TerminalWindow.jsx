@@ -89,33 +89,36 @@ function TerminalWindow() {
   }, [language]);
 
   return (
-    <div className="w-full min-h-screen bg-[#111111] px-10">
-      <h1
-        className="text-3xl font-bold text-white py-5 px-10 bg-[#111111] z-50"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-        }}
-      >
-        Shellify {language} Terminal
-      </h1>
+  <div className="w-full min-h-screen bg-[#111111] px-10">
+    {/* Fixed Header */}
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#111111] px-10 py-4">
+  <h1 className="text-4xl font-bold text-green-400">
+    Shellify {language} Terminal<span className="animate-pulse">_</span>
+  </h1>
+  <button
+    onClick={() => window.history.back()}
+    className="mt-2 text-white text-sm border border-green-400 px-4 py-1 rounded hover:bg-green-400 hover:text-black transition duration-200"
+  >
+    ← Back
+  </button>
+</header>
 
-      <div style={{ paddingTop: "80px", height: "100vh" }}>
-        <div
-          id="terminal"
-          ref={terminalRef}
-          style={{
-            width: "100%",
-            height: "100%",
-            padding: "10px",
-            backgroundColor: "#1e1e1e",
-          }}
-        />
-      </div>
+    {/* Terminal content with padding to avoid header overlap */}
+    <div className="pt-28 h-screen">
+      <div
+        id="terminal"
+        ref={terminalRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          padding: "10px",
+          backgroundColor: "#1e1e1e",
+          overflow: "hidden",
+        }}
+      />
     </div>
-  );
+  </div>
+);
 }
 
 export default TerminalWindow;

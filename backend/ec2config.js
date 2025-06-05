@@ -4,6 +4,7 @@ import {
   DescribeInstancesCommand,
   TerminateInstancesCommand,
 } from "@aws-sdk/client-ec2";
+import { registerInstance } from "./containerTracker.js"; // <-- Import MongoDB logic
 
 const ec2 = new EC2Client({ region: "ap-south-1" });
 
@@ -20,9 +21,9 @@ newgrp docker
   const base64UserData = Buffer.from(userDataScript).toString("base64");
 
   const params = {
-    ImageId: "ami-0e35ddab05955cf57", 
+    ImageId: "ami-0e35ddab05955cf57",
     InstanceType: "t2.micro",
-    KeyName: "temp2", 
+    KeyName: "temp2",
     MinCount: 1,
     MaxCount: 1,
     UserData: base64UserData,
@@ -32,7 +33,6 @@ newgrp docker
         Tags: [{ Key: "Name", Value: "ShellifyInstance" }],
       },
     ],
-    // Using default security group by not specifying SecurityGroupIds
   };
 
   const runCommand = new RunInstancesCommand(params);
@@ -52,6 +52,9 @@ newgrp docker
       publicIp = instance.PublicIpAddress;
     }
   }
+
+  // ✅ Register instance in MongoDB
+  await registerInstance(instanceId, publicIp);
 
   return { instanceId, publicIp };
 }
