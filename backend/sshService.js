@@ -13,7 +13,7 @@ async function waitForInstanceHealthOK(instanceId) {
   console.log("Waiting for instance to pass 2/2 status checks...");
 
   while (!passed) {
-    await new Promise((res) => setTimeout(res, 10000)); // wait 5s
+    await new Promise((res) => setTimeout(res, 10000)); // wait 10s
 
     const statusCmd = new DescribeInstanceStatusCommand({
       InstanceIds: [instanceId],
@@ -36,7 +36,7 @@ async function waitForInstanceHealthOK(instanceId) {
   }
 }
 
-export async function startSSHSession(socket, language, imageMap, host, privateKeyPath, instanceId) {
+export async function startSSHSession(socket, language, imageMap, host, privateKeyPath, instanceId, onEnd) {
   const conn = new Client();
   const containerName = `term_${socket.id}`;
   const privateKey = fs.readFileSync(privateKeyPath);
@@ -78,6 +78,7 @@ export async function startSSHSession(socket, language, imageMap, host, privateK
         stream.on("close", () => {
           console.log("Stream closed");
           conn.end();
+          onEnd(); // trigger container decrement
         });
 
         socket.on("data", (data) => {
@@ -87,6 +88,7 @@ export async function startSSHSession(socket, language, imageMap, host, privateK
         socket.on("disconnect", () => {
           console.log("Client disconnected");
           conn.end();
+          onEnd(); // also trigger on socket disconnect
         });
       });
     })

@@ -2,6 +2,7 @@ import {
   EC2Client,
   RunInstancesCommand,
   DescribeInstancesCommand,
+  TerminateInstancesCommand,
 } from "@aws-sdk/client-ec2";
 
 const ec2 = new EC2Client({ region: "ap-south-1" });
@@ -28,7 +29,7 @@ newgrp docker
     TagSpecifications: [
       {
         ResourceType: "instance",
-        Tags: [{ Key: "Name", Value: "ShellifyDockerInstance" }],
+        Tags: [{ Key: "Name", Value: "ShellifyInstance" }],
       },
     ],
     // Using default security group by not specifying SecurityGroupIds
@@ -53,4 +54,9 @@ newgrp docker
   }
 
   return { instanceId, publicIp };
+}
+
+export async function terminateInstance(instanceId) {
+  await ec2.send(new TerminateInstancesCommand({ InstanceIds: [instanceId] }));
+  console.log(`Terminated instance: ${instanceId}`);
 }
