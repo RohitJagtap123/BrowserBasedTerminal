@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import handleSocketConnection from "./terminalSocket.js";
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import authRoutes from './auth/authRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -29,3 +30,6 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
+
+app.use('/api/auth', authRoutes); // Now /api/auth/signup and /api/auth/login are active
+

@@ -1,8 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import EnvCard from "../components/EnvCards";
 
-const languages = [
-  {
+const languages = [{
     name: "Python",
     description: "An easy-to-read language widely used for web, data science, automation, and scripting.",
     color: "bg-blue-500",
@@ -64,12 +64,36 @@ const languages = [
     color: "bg-gray-500",
     textColor: "text-gray-400",
     icon: "💻"
-  },
-];
+  },];
 
 const Landing = () => {
+  const navigate = useNavigate();
+
+  // Read user info (assume saved in localStorage)
+  const userName = localStorage.getItem("userName");
+
+  const handleLogout = () => {
+    // Clear token and user info
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
+
+    // Redirect to login page
+    navigate("/login");
+  };
+
   return (
     <div className="w-full px-4 sm:px-10 min-h-screen bg-black text-green-400 font-mono relative overflow-hidden">
+      
+      {/* User profile & logout at top right */}
+      <div className="absolute top-5 right-5 flex items-center space-x-4 z-20">
+        <button
+          onClick={handleLogout}
+          className="bg-green-600 hover:bg-red-700 text-white px-3 py-1 rounded font-mono text-sm mt-3"
+        >
+          Logout
+        </button>
+      </div>
+
       {/* Terminal grid background */}
       <div className="absolute inset-0 bg-[length:20px_20px] bg-[linear-gradient(to_right,rgba(34,197,94,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(34,197,94,0.1)_1px,transparent_1px)] opacity-20 pointer-events-none"></div>
       
@@ -100,7 +124,6 @@ const Landing = () => {
         ))}
       </div>
 
-      
       {/* Add keyframes to your Tailwind config */}
       <style jsx global>{`
         @keyframes scanline {

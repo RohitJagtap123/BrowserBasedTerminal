@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const Landing = () => {
       {/* Header */}
       <header className="absolute top-0 w-full p-6 flex justify-between items-center max-w-6xl mx-auto z-10">
         {/* Logo */}
+        <Link to="/">
         <div className="flex items-center gap-3">
           <motion.img
             src="src\assets\shellify-logo.webp" 
@@ -63,6 +65,7 @@ const Landing = () => {
             Shellify
           </motion.h1>
         </div>
+        </Link>
 
         {/* Navigation buttons */}
         <nav>
@@ -72,7 +75,7 @@ const Landing = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/login")}
           >
-            > login
+            &gt; login
           </motion.button>
           <motion.button
             className="ml-4 px-6 py-2 text-lg font-semibold bg-green-600 text-black rounded-md hover:bg-green-500 transition-all"
@@ -137,7 +140,7 @@ const Landing = () => {
             className="px-8 py-3 bg-green-600 text-black text-lg font-semibold rounded-md hover:bg-green-500 transition-all"
             whileHover={{ scale: 1.05, backgroundColor: "#22c55e" }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/signup")}
           >
             $ get_started
           </motion.button>
@@ -147,7 +150,7 @@ const Landing = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/login")}
           >
-            > login
+            &gt; login
           </motion.button>
         </div>
       </motion.div>
