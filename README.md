@@ -39,5 +39,9 @@ This project is a full-stack web application that provides users with a secure, 
 
 ---
 
-## 📂 Project Structure
+## 🧑‍💻 Author
+
+**Rohit Jagtap**  
+Full Stack Developer | Cloud & DevOps Enthusiast  
+
 
