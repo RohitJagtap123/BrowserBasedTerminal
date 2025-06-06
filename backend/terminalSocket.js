@@ -2,7 +2,7 @@ import { startSSHSession } from "./sshService.js";
 import { getOrLaunchInstance, releaseContainer } from "./instanceManager.js";
 
 const languageImageMap = {
-  python: "python:latest",
+  python: "rohitjagtap/restricted-python-terminal:latest",
   node: "node:latest",
   java: "openjdk:latest",
   cpp: "gcc:latest",

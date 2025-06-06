@@ -1,11 +1,42 @@
 import { Client } from "ssh2";
 import fs from "fs";
-import {
-  EC2Client,
-  DescribeInstanceStatusCommand,
-} from "@aws-sdk/client-ec2";
+import { EC2Client, DescribeInstanceStatusCommand } from "@aws-sdk/client-ec2";
 
 const ec2 = new EC2Client({ region: "ap-south-1" });
+
+const restrictedCommands = [
+  "rm",
+  "shutdown",
+  "reboot",
+  "poweroff",
+  "curl",
+  "wget",
+  "scp",
+  "ftp",
+  "mv /",
+  "dd",
+  ":(){ :|:& };:",
+  "kill",
+  "killall",
+  "init",
+  "halt",
+  "telnet",
+  "mkfs",
+  "nc",
+  "nmap",
+  "chmod 777 /",
+  "chown",
+  "mount",
+  "umount",
+  "sudo",
+  "su",
+  "passwd",
+  "useradd",
+  "userdel",
+  "groupadd",
+  "groupdel",
+  "exit",
+];
 
 async function waitForInstanceHealthOK(instanceId) {
   let passed = false;
@@ -36,7 +67,15 @@ async function waitForInstanceHealthOK(instanceId) {
   }
 }
 
-export async function startSSHSession(socket, language, imageMap, host, privateKeyPath, instanceId, onEnd) {
+export async function startSSHSession(
+  socket,
+  language,
+  imageMap,
+  host,
+  privateKeyPath,
+  instanceId,
+  onEnd
+) {
   const conn = new Client();
   const containerName = `term_${socket.id}`;
   const privateKey = fs.readFileSync(privateKeyPath);
@@ -50,14 +89,14 @@ export async function startSSHSession(socket, language, imageMap, host, privateK
     privateKey,
   };
 
- let sessionEnded = false;
+  let sessionEnded = false;
 
-function endSessionOnce() {
-  if (!sessionEnded) {
-    sessionEnded = true;
-    onEnd(); // decrement container
+  function endSessionOnce() {
+    if (!sessionEnded) {
+      sessionEnded = true;
+      onEnd(); // decrement container
+    }
   }
-}
   conn
     .on("ready", () => {
       console.log("SSH ready");
@@ -70,11 +109,14 @@ function endSessionOnce() {
 
         const selectedImage = imageMap[language];
         if (!selectedImage) {
-          socket.emit("data", `No Docker image found for language: ${language}`);
+          socket.emit(
+            "data",
+            `No Docker image found for language: ${language}`
+          );
           return;
         }
 
-        const cmd = `docker run --rm --name ${containerName} -it ${selectedImage} /bin/bash`;
+        const cmd = `docker run --rm --name ${containerName} -it ${selectedImage}`;
         console.log("Running command:", cmd);
 
         stream.write(cmd + "\n");
@@ -90,6 +132,20 @@ function endSessionOnce() {
         });
 
         socket.on("data", (data) => {
+          const command = data.toString().trim().toLowerCase();
+
+          const isDangerous = restrictedCommands.some((word) =>
+            command.includes(word)
+          );
+
+          if (isDangerous) {
+            socket.emit(
+              "data",
+              "❌ Command blocked: Restricted command detected.\n"
+            );
+            return;
+          }
+
           stream.write(data);
         });
 

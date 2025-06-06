@@ -15,7 +15,7 @@ export async function registerInstance(instanceId, publicIp) {
  * Returns the first instance with fewer than 2 containers.
  */
 export async function getAvailableInstance() {
-  const instance = await Ec2Instance.findOne({ containerCount: { $lt: 2 } });
+  const instance = await Ec2Instance.findOne({ containerCount: { $lt: 10 } });
   if (instance) {
     return { instanceId: instance.instanceId, publicIp: instance.publicIp };
   }
